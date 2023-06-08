@@ -1,28 +1,15 @@
 <?php
+include 'classes/db/DaoApolice.php';
 
-include 'classes/Camisa.php';
-include 'classes/Calca.php';
+$id = $_GET['id'];
+            
+$daoApolice = new DaoApolice;
 
-
-// $camiseta = new Camisa('Verde', 'G', 'Camiseta');
-// var_dump($camiseta);
-// echo $camiseta->cor;
-
-
-// $polo = new Camisa('Vermelha', 'P', 'Polo');
-
-// $polo->ageitarAGola();
-// $polo->dobrar();
-// var_dump($polo->modelo);
-// var_dump($polo);
-// var_dump($camiseta->cor);
+$dados = $daoApolice->select()->where('a.id', $id)->get();
 
 
-// $polo->ageitarAGola();
+var_dump($dados);
 
-// $social = new Calca('Preta', 'M', 'Social');
 
-// $social->dobrar();
 
-// var_dump($social->desabotoar());
 
