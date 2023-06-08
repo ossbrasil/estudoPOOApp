@@ -16,7 +16,7 @@
             </tr>
         </thead>
         <?php
-            $pdo = new PDO('mysql:host=10.0.43.3;dbname=oss_poo', 'root', 'secret', ["SET NAMES utf8"]);
+            $pdo = conexao();
             $sql = "
                 SELECT p.*, fp.tipo_pagamento
                     FROM parcelas AS p
@@ -30,8 +30,8 @@
         <tbody>
             <?php
                 foreach($result as $parcelas) {
-                    $data_vencimento = date('d/m/Y', strtotime($parcelas['data_vencimento']));
-                    $valor_parcela = number_format($parcelas['valor_parcela'], 2, ',', '.');
+                    $data_vencimento = formatar_data($parcelas['data_vencimento']);
+                    $valor_parcela = formatar_decimal($parcelas['valor_parcela']);
 
                     if($parcelas['data_pagamento']) {
                         $status = 'Pago';
@@ -61,7 +61,7 @@
         </tbody>
         </table>
     </div>
-    
+
 <?php include '../includes/footer.php';
 
 

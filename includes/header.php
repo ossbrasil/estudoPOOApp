@@ -1,3 +1,7 @@
+<?php
+include '../funcoes/geral/conexao.php'; 
+include '../funcoes/geral/formatacoes.php'; 
+?>
 <!DOCTYPE html>
 <html lang="en">
     <head>

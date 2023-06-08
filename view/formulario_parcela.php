@@ -1,33 +1,34 @@
 <?php
+include '../includes/header.php';
+include '../funcoes/parcelas/negocios.php';
+$pdo = conexao();
 
 if(count($_POST) > 0) {
     
-    $pdo = new PDO('mysql:host=10.0.43.3;dbname=oss_poo', 'root', 'secret');
 
     if(isset($_POST['salvar'])) {
 
-        $sql = "UPDATE parcelas 
-            SET data_vencimento='$_POST[data_vencimento]'
-            WHERE id='$_GET[id]'
-            ";
-        $update = $pdo->exec($sql);
-
-        if($update === false) {
-            $error = 'Erro ao tentar alterar vencimento da parcela';
+        if(!limiteDeMesses($_POST['data_vencimento_comparacao'])) {
+            $error = 'Seu pagamento não pode ser negociado. Venciemnto maior que 3 Meses';
         } else {
-            $sucesso = 'Parcela alterada com sucesso';
+            $sql = "UPDATE parcelas 
+                SET data_vencimento='$_POST[data_vencimento]'
+                WHERE id='$_GET[id]'
+                ";
+            $update = $pdo->exec($sql);
+    
+            if($update === false) {
+                $error = 'Erro ao tentar alterar vencimento da parcela';
+            } else {
+                $sucesso = 'Parcela alterada com sucesso';
+            }
         }
 
     } else if (isset($_POST['realizar_pagamento'])) {
 
-        // var_dump($_POST);
+        $dentro_do_limite = limiteDeMesses($_POST['data_vencimento']);
 
-        $hoje = new DateTime();
-        $vencimento = new DateTime($_POST['data_vencimento']);
-        
-        $interval = $hoje->diff($vencimento);
-
-        if($vencimento < $hoje and $interval->m > 3) {
+        if(!$dentro_do_limite) {
             $error = 'Seu pagamento não pode ser negociado. Venciemnto maior que 3 Meses';
         } else {
             $sql = "UPDATE parcelas 
@@ -46,14 +47,13 @@ if(count($_POST) > 0) {
     }
 }
 
-include '../includes/header.php'
 ?>
 
 <div class="container-fluid">
 
     <?php
         include '../includes/mensagens.php';
-        $pdo = new PDO('mysql:host=10.0.43.3;dbname=oss_poo', 'root', 'secret', ["SET NAMES utf8"]);
+
         $sql = "
             SELECT p.*
                 FROM parcelas AS p
@@ -62,8 +62,8 @@ include '../includes/header.php'
         $preparacao  = $pdo->query($sql);
         $result = $preparacao->fetch(PDO::FETCH_ASSOC);
 
-        $data_vencimento = date('d/m/Y', strtotime($result['data_vencimento']));
-        $valor_parcela = number_format($result['valor_parcela'], 2, ',', '.');
+        $data_vencimento = formatar_data($result['data_vencimento']);
+        $valor_parcela = formatar_decimal($result['valor_parcela']);
 
         if($result['data_pagamento']) {
             $status = 'Pago';
@@ -78,7 +78,7 @@ include '../includes/header.php'
             }
         }
 
-        $data_pagamento =  $result['data_pagamento'] ? date('d/m/Y', strtotime($result['data_pagamento'])) : '-';
+        $data_pagamento =  $result['data_pagamento'] ? formatar_data($result['data_pagamento']) : '-';
 
         $disable_form = $status == 'Pago' ? 'disabled' : '';
     ?>
@@ -93,7 +93,7 @@ include '../includes/header.php'
                     <strong>Data de pagamento</strong> <?php echo $data_pagamento ?>
                 </div>
                 <div class="col-3">
-                    <strong>Valor Pagamento</strong> <?php echo number_format($result['valor_pagamento'], 2, ',', '.') ?>
+                    <strong>Valor Pagamento</strong> <?php echo formatar_decimal($result['valor_pagamento']) ?>
                 </div>
             </div>  
         </div>
@@ -107,6 +107,7 @@ include '../includes/header.php'
                 <div class="col-3">
                     <label for="data_vencimento">Data Vencimento</label>
                     <input <?php echo $disable_form ?> type="date" class="form-control" value="<?php echo $result['data_vencimento'] ?>" name="data_vencimento" id="" placeholder="">
+                    <input type="hidden" value="<?php echo $result['data_vencimento'] ?>" name="data_vencimento_comparacao">
                 </div>
                 </div>
                 <div class="col-12 mt-3">
